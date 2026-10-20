@@ -1,28 +1,133 @@
 @import "tailwindcss";
 
 :root {
-  --background: #090d16;
-  --foreground: #f1f5f9;
+  --background: #08090d;
+  --surface: #101218;
+  --surface-card: #151821;
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-highlight: rgba(255, 255, 255, 0.18);
+  --foreground: #f4f5f8;
 }
 
 body {
-  background: #090d16;
-  color: #f1f5f9;
-  min-height: 100vh;
+  background-color: #08090d;
+  color: #f4f5f8;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Google Sans Flex", sans-serif;
+  overflow-x: hidden;
+  letter-spacing: -0.015em;
 }
 
-/* Scrollbar élégante */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+/* Animations gravitationnelles & orbes fluides style Google Antigravity */
+@keyframes float-slow {
+  0%, 100% {
+    transform: translateY(0px) scale(1);
+  }
+  50% {
+    transform: translateY(-16px) scale(1.03);
+  }
 }
-::-webkit-scrollbar-track {
-  background: #0f172a;
+
+@keyframes float-reverse {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(14px) rotate(4deg);
+  }
 }
-::-webkit-scrollbar-thumb {
-  background: #334155;
-  border-radius: 4px;
+
+@keyframes pulse-subtle {
+  0%, 100% {
+    opacity: 0.35;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.08);
+  }
 }
-::-webkit-scrollbar-thumb:hover {
-  background: #475569;
+
+@keyframes mesh-spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-float {
+  animation: float-slow 7s ease-in-out infinite;
+}
+
+.animate-float-reverse {
+  animation: float-reverse 9s ease-in-out infinite;
+}
+
+.animate-pulse-subtle {
+  animation: pulse-subtle 8s ease-in-out infinite;
+}
+
+.animate-mesh-spin {
+  animation: mesh-spin 35s linear infinite;
+}
+
+/* Grille gravitationnelle en arrière-plan */
+.bg-grid-antigravity {
+  background-size: 48px 48px;
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+}
+
+/* Lueur radiale style Antigravity */
+.radial-halo {
+  background: radial-gradient(circle at 50% 30%, rgba(59, 130, 246, 0.15) 0%, rgba(139, 92, 246, 0.08) 35%, transparent 70%);
+}
+
+/* Cartes Bento style Antigravity */
+.antigravity-card {
+  background: rgba(18, 20, 28, 0.65);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 28px;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.antigravity-card:hover {
+  border-color: rgba(255, 255, 255, 0.16);
+  transform: translateY(-2px);
+  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5), 0 0 25px -5px rgba(99, 102, 241, 0.12);
+}
+
+/* Boutons Pilule style Google */
+.pill-btn-primary {
+  border-radius: 9999px;
+  background: #ffffff;
+  color: #08090d;
+  font-weight: 550;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.pill-btn-primary:hover {
+  background: #e2e8f0;
+  transform: scale(1.02);
+  box-shadow: 0 0 25px rgba(255, 255, 255, 0.25);
+}
+
+.pill-btn-secondary {
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.05);
+  color: #f4f5f8;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  font-weight: 500;
+  backdrop-filter: blur(12px);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.pill-btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.09);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: scale(1.02);
 }

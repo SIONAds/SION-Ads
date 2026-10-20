@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import {
   Sparkles,
-  Layers,
+  ArrowRight,
   Target,
   Image as ImageIcon,
   Video,
@@ -12,33 +12,38 @@ import {
   CheckCircle2,
   Copy,
   Globe,
-  Share2,
-  ChevronRight,
-  TrendingUp,
   Sliders,
   DollarSign,
-  AlertCircle,
   Play,
-  ArrowRight,
   RefreshCw,
   Cpu,
+  Layers,
+  Zap,
+  Shield,
+  Activity,
+  ChevronDown,
+  Terminal,
+  ExternalLink,
 } from "lucide-react";
 import { BrainAnalysisResult } from "@/lib/brain";
 
-export default function SionAdsDashboard() {
-  // Onglet principal actif
-  const [activeTab, setActiveTab] = useState<"generator" | "studio" | "copies" | "meta" | "settings">("generator");
+export default function SionAdsApp() {
+  // Mode d'affichage : 'landing' ou 'cockpit'
+  const [viewMode, setViewMode] = useState<"landing" | "cockpit">("landing");
+
+  // Onglet cockpit
+  const [activeTab, setActiveTab] = useState<"generator" | "copies" | "studio" | "meta">("generator");
 
   // Formulaire d'entrée
   const [title, setTitle] = useState("");
   const [offerType, setOfferType] = useState<"digital" | "physical" | "service" | "lead_gen">("digital");
-  const [targetLocations, setTargetLocations] = useState<string>("France, Belgique");
+  const [targetLocations, setTargetLocations] = useState<string>("France, Belgique, Cameroun");
   const [currency, setCurrency] = useState("EUR");
   const [strategyMode, setStrategyMode] = useState<"ai_recommended" | "custom">("ai_recommended");
   const [customStrategy, setCustomStrategy] = useState("");
   const [rawInput, setRawInput] = useState("");
 
-  // États de chargement et résultats
+  // États d'analyse et résultats
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<BrainAnalysisResult | null>(null);
   const [copiedIndex, setCopiedIndex] = useState<string | null>(null);
@@ -48,11 +53,15 @@ export default function SionAdsDashboard() {
   const [isDeployingMeta, setIsDeployingMeta] = useState(false);
   const [metaDeployResult, setMetaDeployResult] = useState<string | null>(null);
 
-  // Soumission pour analyse IA
+  const showNotice = (msg: string) => {
+    setNotification(msg);
+    setTimeout(() => setNotification(null), 4000);
+  };
+
   const handleLaunchAnalysis = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim() || !rawInput.trim()) {
-      showNotice("Veuillez renseigner le nom de l'offre et une description.");
+      showNotice("Veuillez renseigner le titre et les détails de votre offre.");
       return;
     }
 
@@ -80,12 +89,12 @@ export default function SionAdsDashboard() {
       });
 
       const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || "Erreur lors de l'analyse");
-      }
+      if (!res.ok) throw new Error(data.error || "Erreur lors de l'analyse");
 
       setAnalysisResult(data.analysis);
-      showNotice("Stratégie et assets générés avec succès !");
+      setViewMode("cockpit");
+      setActiveTab("generator");
+      showNotice("Analyse et assets marketing générés avec succès !");
     } catch (err: any) {
       console.error(err);
       showNotice("Erreur : " + err.message);
@@ -94,7 +103,6 @@ export default function SionAdsDashboard() {
     }
   };
 
-  // Déploiement Meta Ads
   const handleDeployMetaCampaign = async () => {
     if (!analysisResult) return;
     setIsDeployingMeta(true);
@@ -109,7 +117,8 @@ export default function SionAdsDashboard() {
         }),
       });
       const data = await res.json();
-      setMetaDeployResult(data.message || "Campagne déployée avec succès !");
+      setMetaDeployResult(data.message || "Campagne déployée sur Meta Ads !");
+      showNotice("Campagne enregistrée dans votre cockpit Meta !");
     } catch (err: any) {
       setMetaDeployResult("Erreur déploiement : " + err.message);
     } finally {
@@ -123,765 +132,1006 @@ export default function SionAdsDashboard() {
     setTimeout(() => setCopiedIndex(null), 2500);
   };
 
-  const showNotice = (msg: string) => {
-    setNotification(msg);
-    setTimeout(() => setNotification(null), 4000);
-  };
-
   return (
-    <div className="min-h-screen flex flex-col bg-[#090d16] text-slate-100">
-      {/* Barre de notification temporaire */}
+    <div className="min-h-screen bg-[#08090d] text-[#f4f5f8] relative selection:bg-blue-500/30 selection:text-white font-sans antialiased overflow-hidden">
+      {/* Halo gravitationnel & Grille d'arrière-plan style Google Antigravity */}
+      <div className="fixed inset-0 bg-grid-antigravity pointer-events-none opacity-40 z-0" />
+      
+      {/* Orbes de gravité lumineuses (The Gravity Well Blobs) */}
+      <div className="fixed -top-40 left-1/2 -translate-x-1/2 w-[720px] h-[720px] rounded-full bg-gradient-to-tr from-blue-600/15 via-purple-600/10 to-cyan-400/10 blur-[130px] pointer-events-none z-0 animate-pulse-subtle" />
+      <div className="fixed top-1/3 -left-32 w-[500px] h-[500px] rounded-full bg-indigo-600/10 blur-[140px] pointer-events-none z-0 animate-float" />
+      <div className="fixed bottom-10 -right-20 w-[600px] h-[600px] rounded-full bg-purple-600/10 blur-[150px] pointer-events-none z-0 animate-float-reverse" />
+
+      {/* Toast Notification */}
       {notification && (
-        <div className="fixed top-5 right-5 z-50 bg-indigo-600 text-white px-5 py-3 rounded-xl shadow-2xl flex items-center space-x-3 border border-indigo-400/40 animate-fade-in">
-          <CheckCircle2 className="w-5 h-5 text-emerald-300" />
-          <span className="text-sm font-medium">{notification}</span>
+        <div className="fixed top-6 right-6 z-50 bg-[#151821]/90 backdrop-blur-md text-white px-5 py-3 rounded-full shadow-2xl flex items-center space-x-3 border border-white/10 animate-fade-in">
+          <div className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+          <span className="text-xs font-medium tracking-tight">{notification}</span>
         </div>
       )}
 
-      {/* Navigation Principale Supérieure */}
-      <header className="border-b border-slate-800/80 bg-[#0c1222]/90 backdrop-blur sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center shadow-lg shadow-indigo-500/20">
-              <Sparkles className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <div className="flex items-center space-x-2">
-                <span className="font-bold text-lg tracking-tight bg-gradient-to-r from-white via-slate-100 to-indigo-300 bg-clip-text text-transparent">
-                  SION ADS
-                </span>
-                <span className="px-2 py-0.5 text-[10px] font-semibold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 rounded-full">
-                  OS v3.2
-                </span>
+      {/* Barre de navigation flottante Antigravity */}
+      <header className="sticky top-4 z-40 max-w-6xl mx-auto px-4 sm:px-6">
+        <div className="antigravity-card px-4 sm:px-6 py-3 flex items-center justify-between border-white/[0.08] backdrop-blur-xl">
+          {/* Logo avec orbe multicolore Google Gravity */}
+          <div
+            onClick={() => setViewMode("landing")}
+            className="flex items-center space-x-3 cursor-pointer group"
+          >
+            <div className="relative w-8 h-8 rounded-full bg-gradient-to-tr from-[#1a73e8] via-[#8b5cf6] to-[#06b6d4] p-[1.5px] transition-transform duration-300 group-hover:scale-110">
+              <div className="w-full h-full bg-[#0d0f14] rounded-full flex items-center justify-center">
+                <Sparkles className="w-4 h-4 text-white" />
               </div>
-              <p className="text-[11px] text-slate-400">Hub Marketing & Pilotage Meta Ads Autonome</p>
+            </div>
+            <div className="flex items-center space-x-2">
+              <span className="font-semibold text-sm tracking-tight text-white">SION Ads</span>
+              <span className="px-2 py-0.5 text-[9px] font-medium tracking-wider uppercase bg-white/[0.05] text-slate-400 border border-white/[0.06] rounded-full">
+                OS 3.2
+              </span>
             </div>
           </div>
 
-          {/* Onglets de navigation */}
-          <nav className="flex items-center space-x-1 sm:space-x-2 bg-slate-900/60 p-1.5 rounded-xl border border-slate-800">
+          {/* Sélecteur de mode & liens rapides */}
+          <div className="flex items-center space-x-1 sm:space-x-3">
             <button
-              onClick={() => setActiveTab("generator")}
-              className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                activeTab === "generator"
-                  ? "bg-indigo-600 text-white shadow-sm"
-                  : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/50"
+              onClick={() => setViewMode("landing")}
+              className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all ${
+                viewMode === "landing"
+                  ? "bg-white/10 text-white border border-white/15"
+                  : "text-slate-400 hover:text-white"
               }`}
             >
-              <Cpu className="w-4 h-4" />
-              <span>Générateur Stratégique</span>
+              Présentation
             </button>
             <button
-              onClick={() => setActiveTab("copies")}
-              className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                activeTab === "copies"
-                  ? "bg-indigo-600 text-white shadow-sm"
-                  : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/50"
+              onClick={() => setViewMode("cockpit")}
+              className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all ${
+                viewMode === "cockpit"
+                  ? "bg-white/10 text-white border border-white/15"
+                  : "text-slate-400 hover:text-white"
               }`}
             >
-              <FileText className="w-4 h-4" />
-              <span>Copies & Personas</span>
+              Cockpit & Campagnes
             </button>
             <button
-              onClick={() => setActiveTab("studio")}
-              className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                activeTab === "studio"
-                  ? "bg-indigo-600 text-white shadow-sm"
-                  : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/50"
-              }`}
+              onClick={() => setViewMode("cockpit")}
+              className="pill-btn-primary px-4 py-1.5 text-xs flex items-center space-x-1.5 cursor-pointer ml-2 shadow-sm"
             >
-              <ImageIcon className="w-4 h-4" />
-              <span>Creative Studio</span>
+              <span>Lancer le Studio</span>
+              <ArrowRight className="w-3.5 h-3.5" />
             </button>
-            <button
-              onClick={() => setActiveTab("meta")}
-              className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                activeTab === "meta"
-                  ? "bg-indigo-600 text-white shadow-sm"
-                  : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/50"
-              }`}
-            >
-              <BarChart3 className="w-4 h-4" />
-              <span>Meta Ads Cockpit</span>
-            </button>
-          </nav>
+          </div>
         </div>
       </header>
 
-      {/* Contenu Principal */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-        {/* ONGLET 1 : GÉNÉRATEUR STRATÉGIQUE */}
-        {activeTab === "generator" && (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            {/* Formulaire de configuration */}
-            <div className="lg:col-span-5 space-y-6">
-              <div className="bg-[#0f172a]/80 border border-slate-800 rounded-2xl p-6 shadow-xl backdrop-blur">
-                <div className="flex items-center justify-between pb-4 border-b border-slate-800 mb-6">
-                  <div>
-                    <h2 className="text-base font-semibold text-white flex items-center space-x-2">
-                      <Sliders className="w-4 h-4 text-indigo-400" />
-                      <span>Paramètres de la Mission</span>
-                    </h2>
-                    <p className="text-xs text-slate-400 mt-0.5">
-                      Configurez l'offre et les cibles pour lancer l'IA
-                    </p>
-                  </div>
-                </div>
+      {/* VUE 1 : LANDING PAGE STYLE GOOGLE ANTIGRAVITY */}
+      {viewMode === "landing" && (
+        <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 pt-16 sm:pt-24 pb-28 space-y-28">
+          {/* Hero Section */}
+          <section className="text-center space-y-8 max-w-4xl mx-auto">
+            {/* Pill Badge */}
+            <div className="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full bg-white/[0.04] border border-white/[0.08] backdrop-blur-md">
+              <span className="w-2 h-2 rounded-full bg-cyan-400" />
+              <span className="text-xs text-slate-300 font-medium tracking-tight">
+                L'écosystème publicitaire autonome pour Meta
+              </span>
+            </div>
 
-                <form onSubmit={handleLaunchAnalysis} className="space-y-5">
-                  {/* Titre */}
+            {/* Titre colossal style Antigravity */}
+            <h1 className="text-4xl sm:text-6xl lg:text-7xl font-medium tracking-[-0.04em] text-white leading-[1.08]">
+              De l'idée à la campagne Meta. <br />
+              <span className="bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">
+                Sans friction. En apesanteur.
+              </span>
+            </h1>
+
+            {/* Sous-titre épuré */}
+            <p className="text-base sm:text-lg text-slate-400 max-w-2xl mx-auto font-normal leading-relaxed tracking-tight">
+              SION Ads unifie l'analyse de marché, la génération créative 4K, le copywriting à haute réponse directe et le pilotage autonome de vos campagnes Facebook et Instagram.
+            </p>
+
+            {/* Boutons d'appel à l'action */}
+            <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
+              <button
+                onClick={() => setViewMode("cockpit")}
+                className="pill-btn-primary px-7 py-3 text-sm flex items-center space-x-2 cursor-pointer shadow-lg"
+              >
+                <span>Ouvrir mon Cockpit</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+              <a
+                href="#bento-grid"
+                className="pill-btn-secondary px-6 py-3 text-sm flex items-center space-x-2 cursor-pointer"
+              >
+                <span>Explorer l'architecture</span>
+                <ChevronDown className="w-4 h-4 text-slate-400" />
+              </a>
+            </div>
+
+            {/* Badges de compatibilité multi-produits */}
+            <div className="pt-6 flex flex-wrap items-center justify-center gap-3 text-xs text-slate-400">
+              <span className="px-3 py-1 rounded-full bg-white/[0.03] border border-white/[0.06]">
+                ✦ Produits Digitaux & SaaS
+              </span>
+              <span className="px-3 py-1 rounded-full bg-white/[0.03] border border-white/[0.06]">
+                ✦ E-commerce & Produits Physiques
+              </span>
+              <span className="px-3 py-1 rounded-full bg-white/[0.03] border border-white/[0.06]">
+                ✦ Ciblage Mondial Personnalisé
+              </span>
+              <span className="px-3 py-1 rounded-full bg-white/[0.03] border border-white/[0.06]">
+                ✦ Meta Marketing API Native
+              </span>
+            </div>
+          </section>
+
+          {/* Formulaire Express au cœur de la Landing Page */}
+          <section className="max-w-3xl mx-auto">
+            <div className="antigravity-card p-6 sm:p-8 relative overflow-hidden border-white/[0.1]">
+              <div className="flex items-center space-x-2 mb-6">
+                <div className="w-3 h-3 rounded-full bg-red-500/80" />
+                <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
+                <div className="w-3 h-3 rounded-full bg-green-500/80" />
+                <span className="text-xs text-slate-500 font-mono ml-2">sion-ads-agent ~ input</span>
+              </div>
+
+              <h2 className="text-lg font-medium text-white mb-2">
+                Initier une mission publicitaire
+              </h2>
+              <p className="text-xs text-slate-400 mb-6">
+                Donnez à l'IA votre proposition de valeur ou description brute pour générer votre écosystème marketing.
+              </p>
+
+              <form onSubmit={handleLaunchAnalysis} className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-medium text-slate-300 mb-1.5">
-                      Nom ou Titre de l'Offre / Produit *
+                    <label className="text-[11px] text-slate-400 font-medium block mb-1">
+                      Nom de l'offre ou produit *
                     </label>
                     <input
                       type="text"
                       value={title}
                       onChange={(e) => setTitle(e.target.value)}
-                      placeholder="Ex: SaaS Automatisation Publicitaire, Formation Copywriting, Sérum Anti-Taches..."
-                      className="w-full px-3.5 py-2.5 bg-slate-900/90 border border-slate-700/80 rounded-xl text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                      placeholder="Ex: SaaS Automatisation, Masterclass Ads..."
+                      className="w-full px-3.5 py-2.5 bg-[#0a0c12] border border-white/[0.08] rounded-xl text-xs text-white placeholder-slate-600 focus:outline-none focus:border-white/30"
                       required
                     />
                   </div>
 
-                  {/* Type d'offre */}
                   <div>
-                    <label className="block text-xs font-medium text-slate-300 mb-1.5">
-                      Type d'offre
+                    <label className="text-[11px] text-slate-400 font-medium block mb-1">
+                      Territoires cibles & Devise
                     </label>
-                    <div className="grid grid-cols-2 gap-2">
-                      {[
-                        { id: "digital", label: "🌟 Digital (SaaS, Ebook, Formation)" },
-                        { id: "physical", label: "📦 Produit Physique / E-com" },
-                        { id: "service", label: "🤝 Service & Prestation" },
-                        { id: "lead_gen", label: "🎯 Génération de Leads" },
-                      ].map((t) => (
-                        <button
-                          key={t.id}
-                          type="button"
-                          onClick={() => setOfferType(t.id as any)}
-                          className={`text-left p-2.5 rounded-xl border text-xs font-medium transition-all ${
-                            offerType === t.id
-                              ? "bg-indigo-600/15 border-indigo-500 text-indigo-300"
-                              : "bg-slate-900/50 border-slate-800 text-slate-400 hover:border-slate-700"
-                          }`}
-                        >
-                          {t.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Zones géographiques cibles & Devise */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-xs font-medium text-slate-300 mb-1.5">
-                        <Globe className="w-3.5 h-3.5 inline mr-1 text-slate-400" />
-                        Zone(s) ciblée(s)
-                      </label>
+                    <div className="flex space-x-2">
                       <input
                         type="text"
                         value={targetLocations}
                         onChange={(e) => setTargetLocations(e.target.value)}
-                        placeholder="Ex: France, Belgique ou Cameroun"
-                        className="w-full px-3 py-2 bg-slate-900/90 border border-slate-700/80 rounded-xl text-xs text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                        placeholder="Ex: France, Belgique, Cameroun..."
+                        className="flex-1 px-3.5 py-2.5 bg-[#0a0c12] border border-white/[0.08] rounded-xl text-xs text-white focus:outline-none focus:border-white/30"
                       />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-medium text-slate-300 mb-1.5">
-                        <DollarSign className="w-3.5 h-3.5 inline mr-1 text-slate-400" />
-                        Devise de vente
-                      </label>
                       <select
                         value={currency}
                         onChange={(e) => setCurrency(e.target.value)}
-                        className="w-full px-3 py-2 bg-slate-900/90 border border-slate-700/80 rounded-xl text-xs text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                        className="w-20 px-2 py-2.5 bg-[#0a0c12] border border-white/[0.08] rounded-xl text-xs text-white focus:outline-none"
                       >
-                        <option value="EUR">EUR (€)</option>
-                        <option value="USD">USD ($)</option>
-                        <option value="XAF">FCFA (XAF)</option>
-                        <option value="CAD">CAD ($)</option>
-                        <option value="GBP">GBP (£)</option>
+                        <option value="EUR">EUR</option>
+                        <option value="USD">USD</option>
+                        <option value="XAF">XAF</option>
+                        <option value="CAD">CAD</option>
                       </select>
                     </div>
                   </div>
+                </div>
 
-                  {/* Choix Stratégique */}
-                  <div>
-                    <label className="block text-xs font-medium text-slate-300 mb-1.5">
-                      Architecture & Stratégie Marketing
-                    </label>
-                    <div className="grid grid-cols-2 gap-2 mb-2">
-                      <button
-                        type="button"
-                        onClick={() => setStrategyMode("ai_recommended")}
-                        className={`p-2.5 rounded-xl border text-xs font-medium transition-all ${
-                          strategyMode === "ai_recommended"
-                            ? "bg-indigo-600/15 border-indigo-500 text-indigo-300"
-                            : "bg-slate-900/50 border-slate-800 text-slate-400 hover:border-slate-700"
-                        }`}
-                      >
-                        🤖 IA Recommande
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setStrategyMode("custom")}
-                        className={`p-2.5 rounded-xl border text-xs font-medium transition-all ${
-                          strategyMode === "custom"
-                            ? "bg-indigo-600/15 border-indigo-500 text-indigo-300"
-                            : "bg-slate-900/50 border-slate-800 text-slate-400 hover:border-slate-700"
-                        }`}
-                      >
-                        🛠️ Je Pilote la Structure
-                      </button>
-                    </div>
+                <div>
+                  <label className="text-[11px] text-slate-400 font-medium block mb-1">
+                    Description, bénéfices ou notes brutes *
+                  </label>
+                  <textarea
+                    rows={4}
+                    value={rawInput}
+                    onChange={(e) => setRawInput(e.target.value)}
+                    placeholder="Collez ici les arguments de vente, le problème résolu, la cible ou l'URL de votre page..."
+                    className="w-full px-3.5 py-2.5 bg-[#0a0c12] border border-white/[0.08] rounded-xl text-xs text-white placeholder-slate-600 focus:outline-none focus:border-white/30"
+                    required
+                  />
+                </div>
 
-                    {strategyMode === "custom" && (
-                      <textarea
-                        rows={2}
-                        value={customStrategy}
-                        onChange={(e) => setCustomStrategy(e.target.value)}
-                        placeholder="Précisez votre funnel : ex. VSL 15min -> Appel de vente, ou Funnel direct avec offre à 47€ + 1 OTO..."
-                        className="w-full mt-2 px-3 py-2 bg-slate-900 border border-indigo-500/30 rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none"
-                      />
-                    )}
+                <div className="flex items-center justify-between pt-2">
+                  <div className="flex items-center space-x-2 text-[11px] text-slate-400">
+                    <Zap className="w-3.5 h-3.5 text-cyan-400" />
+                    <span>Génération instantanée personas + visuels + copies</span>
                   </div>
-
-                  {/* Description / Input Brut */}
-                  <div>
-                    <label className="block text-xs font-medium text-slate-300 mb-1.5">
-                      Description, Pitch ou Notes Brutes *
-                    </label>
-                    <textarea
-                      rows={5}
-                      value={rawInput}
-                      onChange={(e) => setRawInput(e.target.value)}
-                      placeholder="Collez ici les détails de l'offre, les bénéfices clés, le prix, les ingrédients ou fonctionnalités, le lien de votre page de vente..."
-                      className="w-full px-3.5 py-2.5 bg-slate-900/90 border border-slate-700/80 rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
-                      required
-                    />
-                  </div>
-
-                  {/* Bouton de génération */}
                   <button
                     type="submit"
                     disabled={isAnalyzing}
-                    className="w-full py-3.5 px-4 bg-gradient-to-r from-indigo-500 via-purple-600 to-pink-600 hover:from-indigo-600 hover:to-pink-700 text-white text-sm font-semibold rounded-xl shadow-lg shadow-indigo-500/25 transition-all flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                    className="pill-btn-primary px-6 py-2.5 text-xs flex items-center space-x-2 cursor-pointer disabled:opacity-50"
                   >
                     {isAnalyzing ? (
                       <>
-                        <RefreshCw className="w-4 h-4 animate-spin" />
-                        <span>Analyse sémantique & Génération en cours...</span>
+                        <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                        <span>Analyse en cours...</span>
                       </>
                     ) : (
                       <>
-                        <Sparkles className="w-4 h-4" />
-                        <span>Générer l'Écosystème Marketing Complet</span>
+                        <Sparkles className="w-3.5 h-3.5" />
+                        <span>Générer ma campagne</span>
                       </>
                     )}
                   </button>
-                </form>
-              </div>
+                </div>
+              </form>
+            </div>
+          </section>
+
+          {/* Grille Bento Interactive (Bento Grid) style Google Antigravity */}
+          <section id="bento-grid" className="space-y-6">
+            <div className="text-center space-y-2">
+              <h2 className="text-2xl sm:text-3xl font-medium tracking-tight text-white">
+                Une architecture conçue pour la performance
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-400">
+                Chaque module fonctionne en synergie pour orchestrer vos campagnes de A à Z.
+              </p>
             </div>
 
-            {/* Panneau de Résultats & Visualisation */}
-            <div className="lg:col-span-7 space-y-6">
-              {!analysisResult ? (
-                <div className="h-full min-h-[420px] bg-[#0f172a]/40 border border-dashed border-slate-800 rounded-2xl p-8 flex flex-col items-center justify-center text-center">
-                  <div className="w-16 h-16 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center mb-4 text-indigo-400">
-                    <Sparkles className="w-8 h-8" />
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-5 pt-4">
+              {/* Carte Bento 1 : Scion Brain */}
+              <div className="md:col-span-7 antigravity-card p-7 flex flex-col justify-between group">
+                <div>
+                  <div className="w-10 h-10 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 mb-5">
+                    <Cpu className="w-5 h-5" />
                   </div>
-                  <h3 className="text-base font-semibold text-slate-200">
-                    Le Cockpit attend vos directives
+                  <h3 className="text-lg font-semibold text-white mb-2">
+                    Scion Brain — Intelligence Adaptative
                   </h3>
-                  <p className="text-xs text-slate-400 max-w-md mt-1 leading-relaxed">
-                    Renseignez le nom de votre offre et votre description à gauche, puis cliquez sur{" "}
-                    <strong className="text-slate-200">Générer l'Écosystème</strong>. L'IA concevra instantanément vos personas, angles psychologiques, copies et stratégie Meta Ads.
+                  <p className="text-xs text-slate-400 leading-relaxed mb-6">
+                    Ne force plus aucun format figé. L'agent analyse sémantiquement l'offre, adapte les personas à votre zone géographique (Afrique, Europe, Amériques) et extrait les angles psychologiques à haute conversion.
+                  </p>
+                </div>
+                <div className="p-4 bg-[#0a0c12] rounded-2xl border border-white/[0.06] text-xs font-mono space-y-2">
+                  <div className="flex items-center justify-between text-slate-400 text-[11px]">
+                    <span>Agent: Brain-4-Maverick</span>
+                    <span className="text-emerald-400">● En ligne</span>
+                  </div>
+                  <p className="text-slate-300">
+                    &gt; Extraction personas, matrice désirs/douleurs et traitement de 20 objections clients.
+                  </p>
+                </div>
+              </div>
+
+              {/* Carte Bento 2 : Autopilot Ads */}
+              <div className="md:col-span-5 antigravity-card p-7 flex flex-col justify-between group">
+                <div>
+                  <div className="w-10 h-10 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 mb-5">
+                    <BarChart3 className="w-5 h-5" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-white mb-2">
+                    Autopilot Meta Ads Manager
+                  </h3>
+                  <p className="text-xs text-slate-400 leading-relaxed mb-6">
+                    Déploiement direct de campagnes CBO Advantage Budget. Règles intelligentes pour couper les publicités faibles et scaler les créatifs rentables.
+                  </p>
+                </div>
+                <div className="grid grid-cols-2 gap-2 text-center text-xs">
+                  <div className="p-3 bg-[#0a0c12] rounded-xl border border-white/[0.06]">
+                    <div className="text-[10px] text-slate-500 uppercase">Règle Kill</div>
+                    <div className="font-semibold text-rose-400 mt-0.5">CTR &lt; 1%</div>
+                  </div>
+                  <div className="p-3 bg-[#0a0c12] rounded-xl border border-white/[0.06]">
+                    <div className="text-[10px] text-slate-500 uppercase">Règle Scale</div>
+                    <div className="font-semibold text-emerald-400 mt-0.5">ROAS &gt; 2.5x</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Carte Bento 3 : Studio UGC 4K & Mockups 3D */}
+              <div className="md:col-span-6 antigravity-card p-7 flex flex-col justify-between">
+                <div>
+                  <div className="w-10 h-10 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 mb-5">
+                    <ImageIcon className="w-5 h-5" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-white mb-2">
+                    Creative Studio & Mockups 3D
+                  </h3>
+                  <p className="text-xs text-slate-400 leading-relaxed mb-4">
+                    Génération de prompts photoréalistes pour Emu, Midjourney ou FLUX : mockups 3D high-tech pour le digital et scènes de vie authentiques pour le physique.
+                  </p>
+                </div>
+                <div className="flex items-center space-x-2 text-[11px] text-slate-400">
+                  <span className="px-2.5 py-1 bg-white/[0.04] rounded-lg border border-white/[0.06]">1:1 Feed</span>
+                  <span className="px-2.5 py-1 bg-white/[0.04] rounded-lg border border-white/[0.06]">9:16 Stories/Reels</span>
+                  <span className="px-2.5 py-1 bg-white/[0.04] rounded-lg border border-white/[0.06]">16:9 Desktop</span>
+                </div>
+              </div>
+
+              {/* Carte Bento 4 : Copy Factory */}
+              <div className="md:col-span-6 antigravity-card p-7 flex flex-col justify-between">
+                <div>
+                  <div className="w-10 h-10 rounded-2xl bg-pink-500/10 border border-pink-500/20 flex items-center justify-center text-pink-400 mb-5">
+                    <FileText className="w-5 h-5" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-white mb-2">
+                    Copy Factory & Réponse Directe
+                  </h3>
+                  <p className="text-xs text-slate-400 leading-relaxed mb-4">
+                    Rédaction structurée selon les meilleurs frameworks de copywriting : AIDA, PAS, et Hook-Story-Offer avec appels à l'action adaptés au marché cible.
+                  </p>
+                </div>
+                <div className="p-3 bg-[#0a0c12] rounded-xl border border-white/[0.06] text-xs text-slate-300 italic">
+                  « Hook percutant ➔ Histoire engageante ➔ Offre irrésistible »
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Section CTA finale */}
+          <section className="text-center pt-8">
+            <div className="antigravity-card p-10 sm:p-14 max-w-3xl mx-auto space-y-6 border-white/[0.1] relative overflow-hidden">
+              <h2 className="text-3xl sm:text-4xl font-medium tracking-tight text-white">
+                Prêt à piloter votre marketing avec SION Ads ?
+              </h2>
+              <p className="text-sm text-slate-400 max-w-lg mx-auto">
+                Accédez à votre espace de contrôle et lancez vos créations de campagnes en quelques clics.
+              </p>
+              <button
+                onClick={() => setViewMode("cockpit")}
+                className="pill-btn-primary px-8 py-3.5 text-sm inline-flex items-center space-x-2 cursor-pointer shadow-xl"
+              >
+                <span>Accéder au Cockpit SION Ads</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
+
+      {/* VUE 2 : COCKPIT OPÉRATIONNEL COMPLET */}
+      {viewMode === "cockpit" && (
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+          {/* Sous-navigation du Cockpit */}
+          <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-white/[0.08]">
+            <div>
+              <h1 className="text-xl font-semibold text-white">Cockpit Publicitaire SION Ads</h1>
+              <p className="text-xs text-slate-400">
+                Générez, prévisualisez et déployez vos campagnes Meta Ads interconnectées
+              </p>
+            </div>
+
+            <div className="flex items-center space-x-2 bg-[#12141c] p-1.5 rounded-full border border-white/[0.08]">
+              <button
+                onClick={() => setActiveTab("generator")}
+                className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all ${
+                  activeTab === "generator"
+                    ? "bg-white text-black font-semibold shadow-sm"
+                    : "text-slate-400 hover:text-white"
+                }`}
+              >
+                Mission & Brain
+              </button>
+              <button
+                onClick={() => setActiveTab("copies")}
+                className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all ${
+                  activeTab === "copies"
+                    ? "bg-white text-black font-semibold shadow-sm"
+                    : "text-slate-400 hover:text-white"
+                }`}
+              >
+                Copies & Personas
+              </button>
+              <button
+                onClick={() => setActiveTab("studio")}
+                className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all ${
+                  activeTab === "studio"
+                    ? "bg-white text-black font-semibold shadow-sm"
+                    : "text-slate-400 hover:text-white"
+                }`}
+              >
+                Creative Studio
+              </button>
+              <button
+                onClick={() => setActiveTab("meta")}
+                className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all ${
+                  activeTab === "meta"
+                    ? "bg-white text-black font-semibold shadow-sm"
+                    : "text-slate-400 hover:text-white"
+                }`}
+              >
+                Meta Ads Hub
+              </button>
+            </div>
+          </div>
+
+          {/* ONGLET 1 : MISSION & BRAIN */}
+          {activeTab === "generator" && (
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+              {/* Formulaire de configuration */}
+              <div className="lg:col-span-5 space-y-6">
+                <div className="antigravity-card p-6">
+                  <h2 className="text-sm font-semibold text-white mb-1 flex items-center space-x-2">
+                    <Sliders className="w-4 h-4 text-cyan-400" />
+                    <span>Configuration de l'Offre</span>
+                  </h2>
+                  <p className="text-xs text-slate-400 mb-5">
+                    Ajustez les paramètres pour adapter le ciblage et le format
+                  </p>
+
+                  <form onSubmit={handleLaunchAnalysis} className="space-y-4">
+                    <div>
+                      <label className="text-xs text-slate-300 font-medium block mb-1">
+                        Titre de l'Offre / Produit *
+                      </label>
+                      <input
+                        type="text"
+                        value={title}
+                        onChange={(e) => setTitle(e.target.value)}
+                        placeholder="Ex: SaaS Automatisation, Masterclass Ads..."
+                        className="w-full px-3.5 py-2.5 bg-[#0a0c12] border border-white/[0.08] rounded-xl text-xs text-white focus:outline-none focus:border-white/30"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-xs text-slate-300 font-medium block mb-1">
+                        Type d'Offre
+                      </label>
+                      <div className="grid grid-cols-2 gap-2">
+                        {[
+                          { id: "digital", label: "🌟 Digital (SaaS, Formation)" },
+                          { id: "physical", label: "📦 Produit Physique" },
+                          { id: "service", label: "🤝 Prestation de Service" },
+                          { id: "lead_gen", label: "🎯 Génération de Leads" },
+                        ].map((t) => (
+                          <button
+                            key={t.id}
+                            type="button"
+                            onClick={() => setOfferType(t.id as any)}
+                            className={`p-2.5 rounded-xl border text-xs text-left transition-all ${
+                              offerType === t.id
+                                ? "bg-white/[0.08] border-white/30 text-white font-medium"
+                                : "bg-[#0a0c12] border-white/[0.06] text-slate-400 hover:border-white/15"
+                            }`}
+                          >
+                            {t.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-xs text-slate-300 font-medium block mb-1">
+                          Zone(s) ciblée(s)
+                        </label>
+                        <input
+                          type="text"
+                          value={targetLocations}
+                          onChange={(e) => setTargetLocations(e.target.value)}
+                          placeholder="France, Cameroun..."
+                          className="w-full px-3 py-2 bg-[#0a0c12] border border-white/[0.08] rounded-xl text-xs text-white focus:outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs text-slate-300 font-medium block mb-1">
+                          Devise
+                        </label>
+                        <select
+                          value={currency}
+                          onChange={(e) => setCurrency(e.target.value)}
+                          className="w-full px-3 py-2 bg-[#0a0c12] border border-white/[0.08] rounded-xl text-xs text-white focus:outline-none"
+                        >
+                          <option value="EUR">EUR (€)</option>
+                          <option value="USD">USD ($)</option>
+                          <option value="XAF">FCFA (XAF)</option>
+                          <option value="CAD">CAD ($)</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="text-xs text-slate-300 font-medium block mb-1">
+                        Structure Marketing
+                      </label>
+                      <div className="grid grid-cols-2 gap-2 mb-2">
+                        <button
+                          type="button"
+                          onClick={() => setStrategyMode("ai_recommended")}
+                          className={`p-2.5 rounded-xl border text-xs transition-all ${
+                            strategyMode === "ai_recommended"
+                              ? "bg-white/[0.08] border-white/30 text-white font-medium"
+                              : "bg-[#0a0c12] border-white/[0.06] text-slate-400"
+                          }`}
+                        >
+                          🤖 Recommandation IA
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setStrategyMode("custom")}
+                          className={`p-2.5 rounded-xl border text-xs transition-all ${
+                            strategyMode === "custom"
+                              ? "bg-white/[0.08] border-white/30 text-white font-medium"
+                              : "bg-[#0a0c12] border-white/[0.06] text-slate-400"
+                          }`}
+                        >
+                          🛠️ Structure Imposée
+                        </button>
+                      </div>
+
+                      {strategyMode === "custom" && (
+                        <textarea
+                          rows={2}
+                          value={customStrategy}
+                          onChange={(e) => setCustomStrategy(e.target.value)}
+                          placeholder="Détaillez le funnel ou la structure de campagne voulue..."
+                          className="w-full mt-2 px-3 py-2 bg-[#0a0c12] border border-white/[0.08] rounded-xl text-xs text-white focus:outline-none"
+                        />
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="text-xs text-slate-300 font-medium block mb-1">
+                        Description & Notes Brutes *
+                      </label>
+                      <textarea
+                        rows={4}
+                        value={rawInput}
+                        onChange={(e) => setRawInput(e.target.value)}
+                        placeholder="Bénéfices, promesse, caractéristiques ou pitch..."
+                        className="w-full px-3.5 py-2 bg-[#0a0c12] border border-white/[0.08] rounded-xl text-xs text-white focus:outline-none"
+                        required
+                      />
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={isAnalyzing}
+                      className="pill-btn-primary w-full py-3 text-xs flex items-center justify-center space-x-2 cursor-pointer disabled:opacity-50"
+                    >
+                      {isAnalyzing ? (
+                        <>
+                          <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                          <span>Génération de la stratégie...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="w-3.5 h-3.5" />
+                          <span>Mettre à jour la Stratégie</span>
+                        </>
+                      )}
+                    </button>
+                  </form>
+                </div>
+              </div>
+
+              {/* Résultats & Visualisation */}
+              <div className="lg:col-span-7 space-y-6">
+                {!analysisResult ? (
+                  <div className="h-full min-h-[400px] antigravity-card p-8 flex flex-col items-center justify-center text-center">
+                    <div className="w-12 h-12 rounded-2xl bg-white/[0.05] border border-white/[0.08] flex items-center justify-center mb-4 text-cyan-400">
+                      <Sparkles className="w-6 h-6" />
+                    </div>
+                    <h3 className="text-sm font-semibold text-white">
+                      En attente de vos paramètres
+                    </h3>
+                    <p className="text-xs text-slate-400 max-w-sm mt-1 leading-relaxed">
+                      Remplissez le formulaire à gauche pour concevoir votre positionnement, vos personas et vos angles marketing.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-6 animate-fade-in">
+                    {/* Positionnement & Promesse Unique */}
+                    <div className="antigravity-card p-6 border-white/[0.12]">
+                      <div className="flex items-center justify-between pb-3 border-b border-white/[0.06] mb-4">
+                        <span className="text-[10px] font-semibold tracking-wider uppercase text-cyan-400 flex items-center space-x-1.5">
+                          <Target className="w-3 h-3" />
+                          <span>Positionnement de Marché</span>
+                        </span>
+                        <span className="px-2.5 py-0.5 text-[10px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-full">
+                          Prix Conseillé : {analysisResult.positioning.recommended_pricing}
+                        </span>
+                      </div>
+
+                      <h3 className="text-base font-semibold text-white mb-2">
+                        {analysisResult.positioning.unique_value_proposition}
+                      </h3>
+                      <p className="text-xs text-slate-300 leading-relaxed">
+                        {analysisResult.positioning.target_market_summary}
+                      </p>
+                      <div className="mt-3 text-[11px] text-slate-400 italic">
+                        {analysisResult.positioning.market_sophistication_level}
+                      </div>
+                    </div>
+
+                    {/* Angles Marketing Psychologiques */}
+                    <div className="antigravity-card p-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <h4 className="text-sm font-semibold text-white flex items-center space-x-2">
+                          <Zap className="w-4 h-4 text-purple-400" />
+                          <span>Angles Psychologiques ({analysisResult.angles.length})</span>
+                        </h4>
+                        <button
+                          onClick={() => setActiveTab("copies")}
+                          className="text-xs text-cyan-400 hover:text-cyan-300 flex items-center space-x-1"
+                        >
+                          <span>Voir les textes rédigés</span>
+                          <ArrowRight className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+
+                      <div className="space-y-3">
+                        {analysisResult.angles.map((ang) => (
+                          <div
+                            key={ang.id}
+                            className="p-3.5 bg-[#0a0c12] border border-white/[0.06] rounded-xl hover:border-white/15 transition-all"
+                          >
+                            <div className="flex items-center justify-between mb-1.5">
+                              <span className="font-semibold text-xs text-white">{ang.name}</span>
+                              <span className="text-[10px] bg-white/[0.05] text-slate-400 px-2 py-0.5 rounded-full">
+                                Angle #{ang.id}
+                              </span>
+                            </div>
+                            <p className="text-xs text-slate-300 mb-2 font-medium">
+                              « {ang.hook_example} »
+                            </p>
+                            <div className="text-[11px] text-slate-400">
+                              <strong className="text-slate-300">Levier émotionnel :</strong> {ang.psychological_trigger}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Déploiement Meta Direct */}
+                    <div className="antigravity-card p-6">
+                      <div className="flex items-center justify-between mb-3">
+                        <div>
+                          <h4 className="text-sm font-semibold text-white">
+                            Déploiement CBO Meta Ads
+                          </h4>
+                          <p className="text-[11px] text-slate-400">
+                            Création d'une campagne Advantage Budget avec vos créatifs
+                          </p>
+                        </div>
+                        <button
+                          onClick={handleDeployMetaCampaign}
+                          disabled={isDeployingMeta}
+                          className="pill-btn-primary px-4 py-2 text-xs flex items-center space-x-1.5 cursor-pointer disabled:opacity-50"
+                        >
+                          <Play className="w-3.5 h-3.5" />
+                          <span>{isDeployingMeta ? "Envoi..." : "Déployer la Campagne"}</span>
+                        </button>
+                      </div>
+
+                      {metaDeployResult && (
+                        <div className="p-3 mb-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-xs text-emerald-300">
+                          {metaDeployResult}
+                        </div>
+                      )}
+
+                      <div className="grid grid-cols-3 gap-3 pt-2 text-center">
+                        <div className="p-2.5 bg-[#0a0c12] rounded-xl border border-white/[0.06]">
+                          <div className="text-[10px] text-slate-500 uppercase">Budget Journalier</div>
+                          <div className="text-xs font-bold text-white mt-0.5">
+                            {analysisResult.meta_ads_strategy.recommended_budget_daily}
+                          </div>
+                        </div>
+                        <div className="p-2.5 bg-[#0a0c12] rounded-xl border border-white/[0.06]">
+                          <div className="text-[10px] text-slate-500 uppercase">CTR Minimum</div>
+                          <div className="text-xs font-bold text-emerald-400 mt-0.5">
+                            {analysisResult.meta_ads_strategy.kpi_targets.expected_ctr}
+                          </div>
+                        </div>
+                        <div className="p-2.5 bg-[#0a0c12] rounded-xl border border-white/[0.06]">
+                          <div className="text-[10px] text-slate-500 uppercase">ROAS Cible</div>
+                          <div className="text-xs font-bold text-cyan-400 mt-0.5">
+                            {analysisResult.meta_ads_strategy.kpi_targets.target_roas}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* ONGLET 2 : COPIES & PERSONAS */}
+          {activeTab === "copies" && (
+            <div className="space-y-8">
+              {!analysisResult ? (
+                <div className="text-center py-16 antigravity-card">
+                  <p className="text-xs text-slate-400">
+                    Veuillez d'abord générer une mission dans l'onglet{" "}
+                    <strong className="text-white">Mission & Brain</strong>.
                   </p>
                 </div>
               ) : (
-                <div className="space-y-6 animate-fade-in">
-                  {/* Synthèse du Positionnement */}
-                  <div className="bg-gradient-to-br from-indigo-950/40 via-slate-900 to-slate-900 border border-indigo-500/30 rounded-2xl p-6 shadow-xl relative overflow-hidden">
-                    <div className="flex items-center justify-between pb-3 border-b border-indigo-500/20 mb-4">
-                      <span className="text-[11px] font-semibold text-indigo-400 tracking-wider uppercase flex items-center space-x-1.5">
-                        <Target className="w-3.5 h-3.5" />
-                        <span>Positionnement & Promesse Unique</span>
-                      </span>
-                      <span className="px-2.5 py-1 text-[11px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-full">
-                        Tarif Recommandé : {analysisResult.positioning.recommended_pricing}
-                      </span>
-                    </div>
-
-                    <h3 className="text-lg font-bold text-white mb-2">
-                      {analysisResult.positioning.unique_value_proposition}
+                <>
+                  {/* Personas */}
+                  <div>
+                    <h3 className="text-sm font-semibold text-white mb-4 flex items-center space-x-2">
+                      <Target className="w-4 h-4 text-cyan-400" />
+                      <span>Avatars & Personas Cibles</span>
                     </h3>
-                    <p className="text-xs text-slate-300 leading-relaxed">
-                      {analysisResult.positioning.target_market_summary}
-                    </p>
-                    <div className="mt-3 text-[11px] text-slate-400 italic">
-                      {analysisResult.positioning.market_sophistication_level}
-                    </div>
-                  </div>
-
-                  {/* Angles Marketing Psychologiques */}
-                  <div className="bg-[#0f172a]/80 border border-slate-800 rounded-2xl p-6 shadow-xl">
-                    <div className="flex items-center justify-between mb-4">
-                      <h4 className="text-sm font-semibold text-white flex items-center space-x-2">
-                        <TrendingUp className="w-4 h-4 text-purple-400" />
-                        <span>Angles Marketing Générés ({analysisResult.angles.length})</span>
-                      </h4>
-                      <button
-                        onClick={() => setActiveTab("copies")}
-                        className="text-xs text-indigo-400 hover:text-indigo-300 flex items-center space-x-1"
-                      >
-                        <span>Voir les copies rédigées</span>
-                        <ChevronRight className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-
-                    <div className="space-y-3">
-                      {analysisResult.angles.map((ang) => (
-                        <div
-                          key={ang.id}
-                          className="p-4 bg-slate-900/70 border border-slate-800/80 rounded-xl hover:border-slate-700 transition-all"
-                        >
-                          <div className="flex items-center justify-between mb-1.5">
-                            <span className="font-semibold text-xs text-indigo-300">
-                              {ang.name}
-                            </span>
-                            <span className="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded">
-                              Angle #{ang.id}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                      {analysisResult.personas.map((per, i) => (
+                        <div key={i} className="antigravity-card p-6 space-y-4">
+                          <div className="flex items-center justify-between pb-3 border-b border-white/[0.06]">
+                            <div>
+                              <h4 className="font-semibold text-white text-sm">{per.name}</h4>
+                              <p className="text-xs text-slate-400">{per.demographics} • {per.location}</p>
+                            </div>
+                            <span className="px-2 py-0.5 text-[10px] bg-white/[0.05] text-slate-300 rounded-full border border-white/[0.08]">
+                              Persona #{i + 1}
                             </span>
                           </div>
-                          <p className="text-xs text-slate-300 mb-2 font-medium">
-                            « {ang.hook_example} »
-                          </p>
-                          <div className="text-[11px] text-slate-400">
-                            <strong className="text-slate-300">Déclencheur :</strong> {ang.psychological_trigger}
+
+                          <div>
+                            <div className="text-xs font-semibold text-rose-400 mb-1">Douleurs Profondes :</div>
+                            <ul className="text-xs text-slate-300 space-y-1 list-disc list-inside">
+                              {per.core_pains.map((p, idx) => (
+                                <li key={idx}>{p}</li>
+                              ))}
+                            </ul>
+                          </div>
+
+                          <div>
+                            <div className="text-xs font-semibold text-emerald-400 mb-1">Désirs Secrets :</div>
+                            <ul className="text-xs text-slate-300 space-y-1 list-disc list-inside">
+                              {per.secret_desires.map((d, idx) => (
+                                <li key={idx}>{d}</li>
+                              ))}
+                            </ul>
+                          </div>
+
+                          <div className="pt-2 border-t border-white/[0.06] flex items-center justify-between text-[11px] text-slate-400">
+                            <span>Canaux :</span>
+                            <span className="text-white font-medium">{per.preferred_platforms.join(", ")}</span>
                           </div>
                         </div>
                       ))}
                     </div>
                   </div>
 
-                  {/* Recommandation Meta Ads Express */}
-                  <div className="bg-[#0f172a]/80 border border-slate-800 rounded-2xl p-6 shadow-xl">
-                    <div className="flex items-center justify-between mb-3">
-                      <h4 className="text-sm font-semibold text-white flex items-center space-x-2">
-                        <BarChart3 className="w-4 h-4 text-emerald-400" />
-                        <span>Plan de Déploiement Meta Ads CBO</span>
-                      </h4>
-                      <button
-                        onClick={handleDeployMetaCampaign}
-                        disabled={isDeployingMeta}
-                        className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-lg shadow-sm transition-all flex items-center space-x-1.5 cursor-pointer disabled:opacity-50"
-                      >
-                        <Play className="w-3.5 h-3.5" />
-                        <span>{isDeployingMeta ? "Déploiement..." : "Déployer la Campagne"}</span>
-                      </button>
-                    </div>
+                  {/* Copies de Vente */}
+                  <div>
+                    <h3 className="text-sm font-semibold text-white mb-4 flex items-center space-x-2">
+                      <FileText className="w-4 h-4 text-purple-400" />
+                      <span>Textes de Vente Rédigés (Frameworks Direct Response)</span>
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                      {analysisResult.copies.map((copy, i) => (
+                        <div key={i} className="antigravity-card p-6 flex flex-col justify-between space-y-4">
+                          <div>
+                            <div className="flex items-center justify-between mb-3 pb-2 border-b border-white/[0.06]">
+                              <span className="text-xs font-bold text-white uppercase tracking-wider">
+                                Framework {copy.framework}
+                              </span>
+                              <button
+                                onClick={() =>
+                                  copyToClipboard(
+                                    `${copy.hook}\n\n${copy.body}\n\n${copy.cta}`,
+                                    `copy_${i}`
+                                  )
+                                }
+                                className="px-2 py-1 bg-white/[0.06] hover:bg-white/[0.12] text-slate-300 rounded text-xs flex items-center space-x-1 cursor-pointer transition-all"
+                              >
+                                {copiedIndex === `copy_${i}` ? (
+                                  <>
+                                    <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                                    <span className="text-emerald-400">Copié</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Copy className="w-3 h-3" />
+                                    <span>Copier</span>
+                                  </>
+                                )}
+                              </button>
+                            </div>
 
-                    {metaDeployResult && (
-                      <div className="p-3 mb-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-xs text-emerald-300">
-                        {metaDeployResult}
-                      </div>
-                    )}
-
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
-                      <div className="p-3 bg-slate-900/60 rounded-xl border border-slate-800/60">
-                        <div className="text-[10px] text-slate-400 uppercase">Budget Conseillé</div>
-                        <div className="text-sm font-bold text-white mt-0.5">
-                          {analysisResult.meta_ads_strategy.recommended_budget_daily}
+                            <div className="space-y-3 text-xs">
+                              <div>
+                                <span className="text-slate-500 uppercase text-[10px] block">Hook / Accroche :</span>
+                                <p className="text-white font-medium mt-0.5">{copy.hook}</p>
+                              </div>
+                              <div>
+                                <span className="text-slate-500 uppercase text-[10px] block">Corps :</span>
+                                <p className="text-slate-300 mt-0.5 leading-relaxed">{copy.body}</p>
+                              </div>
+                              <div>
+                                <span className="text-slate-500 uppercase text-[10px] block">Appel à l'action :</span>
+                                <p className="text-cyan-400 font-semibold mt-0.5">{copy.cta}</p>
+                              </div>
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                      <div className="p-3 bg-slate-900/60 rounded-xl border border-slate-800/60">
-                        <div className="text-[10px] text-slate-400 uppercase">CTR Minimum Cible</div>
-                        <div className="text-sm font-bold text-emerald-400 mt-0.5">
-                          {analysisResult.meta_ads_strategy.kpi_targets.expected_ctr}
-                        </div>
-                      </div>
-                      <div className="p-3 bg-slate-900/60 rounded-xl border border-slate-800/60">
-                        <div className="text-[10px] text-slate-400 uppercase">ROAS Visé</div>
-                        <div className="text-sm font-bold text-purple-400 mt-0.5">
-                          {analysisResult.meta_ads_strategy.kpi_targets.target_roas}
-                        </div>
-                      </div>
+                      ))}
                     </div>
                   </div>
-                </div>
+                </>
               )}
             </div>
-          </div>
-        )}
+          )}
 
-        {/* ONGLET 2 : COPIES & PERSONAS */}
-        {activeTab === "copies" && (
-          <div className="space-y-8">
-            {!analysisResult ? (
-              <div className="text-center py-16 bg-[#0f172a]/40 border border-dashed border-slate-800 rounded-2xl">
-                <p className="text-sm text-slate-400">
-                  Veuillez d'abord lancer une analyse dans l'onglet{" "}
-                  <strong className="text-indigo-400">Générateur Stratégique</strong> pour afficher vos copies.
-                </p>
-              </div>
-            ) : (
-              <>
-                {/* Personas Détaillés */}
-                <div>
-                  <h3 className="text-base font-bold text-white mb-4 flex items-center space-x-2">
-                    <Target className="w-5 h-5 text-indigo-400" />
-                    <span>Profils Psychologiques des Personas Cibles</span>
-                  </h3>
+          {/* ONGLET 3 : CREATIVE STUDIO */}
+          {activeTab === "studio" && (
+            <div className="space-y-8">
+              {!analysisResult ? (
+                <div className="text-center py-16 antigravity-card">
+                  <p className="text-xs text-slate-400">
+                    Générez d'abord une offre pour visualiser les prompts visuels et scripts.
+                  </p>
+                </div>
+              ) : (
+                <>
+                  {/* Visuels & Prompts */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {analysisResult.personas.map((per, i) => (
-                      <div
-                        key={i}
-                        className="bg-[#0f172a]/80 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4"
-                      >
-                        <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-                          <div>
-                            <h4 className="font-bold text-white text-sm">{per.name}</h4>
-                            <p className="text-xs text-slate-400">{per.demographics} • {per.location}</p>
-                          </div>
-                          <span className="px-2 py-0.5 text-[10px] bg-indigo-500/10 text-indigo-400 rounded-md border border-indigo-500/20">
-                            Persona #{i + 1}
-                          </span>
-                        </div>
-
-                        <div>
-                          <div className="text-xs font-semibold text-rose-400 mb-1">Douleurs Profondes :</div>
-                          <ul className="text-xs text-slate-300 space-y-1 list-disc list-inside">
-                            {per.core_pains.map((p, idx) => (
-                              <li key={idx}>{p}</li>
-                            ))}
-                          </ul>
-                        </div>
-
-                        <div>
-                          <div className="text-xs font-semibold text-emerald-400 mb-1">Désirs Secrets :</div>
-                          <ul className="text-xs text-slate-300 space-y-1 list-disc list-inside">
-                            {per.secret_desires.map((d, idx) => (
-                              <li key={idx}>{d}</li>
-                            ))}
-                          </ul>
-                        </div>
-
-                        <div className="pt-2 border-t border-slate-800 flex items-center justify-between text-[11px] text-slate-400">
-                          <span>Canaux Meta :</span>
-                          <span className="text-slate-200 font-medium">
-                            {per.preferred_platforms.join(", ")}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Copies Rédigées (AIDA, PAS, Hook-Story-Offer) */}
-                <div>
-                  <h3 className="text-base font-bold text-white mb-4 flex items-center space-x-2">
-                    <FileText className="w-5 h-5 text-purple-400" />
-                    <span>Textes de Vente Rédigés Prêts à Copier</span>
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {analysisResult.copies.map((copy, i) => (
-                      <div
-                        key={i}
-                        className="bg-[#0f172a]/80 border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col justify-between space-y-4"
-                      >
-                        <div>
-                          <div className="flex items-center justify-between mb-3">
-                            <span className="text-xs font-bold text-indigo-400 uppercase tracking-wide">
-                              Framework {copy.framework}
-                            </span>
-                            <button
-                              onClick={() =>
-                                copyToClipboard(
-                                  `${copy.hook}\n\n${copy.body}\n\n${copy.cta}`,
-                                  `copy_${i}`
-                                )
-                              }
-                              className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-md text-xs flex items-center space-x-1 cursor-pointer transition-all"
-                            >
-                              {copiedIndex === `copy_${i}` ? (
-                                <>
-                                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                                  <span className="text-emerald-400">Copié !</span>
-                                </>
-                              ) : (
-                                <>
-                                  <Copy className="w-3.5 h-3.5" />
-                                  <span>Copier</span>
-                                </>
-                              )}
-                            </button>
-                          </div>
-
-                          <div className="space-y-3 text-xs">
-                            <div>
-                              <strong className="text-slate-400 block text-[10px] uppercase">Hook / Accroche :</strong>
-                              <p className="text-slate-200 font-medium mt-0.5">{copy.hook}</p>
-                            </div>
-                            <div>
-                              <strong className="text-slate-400 block text-[10px] uppercase">Corps de texte :</strong>
-                              <p className="text-slate-300 mt-0.5 leading-relaxed">{copy.body}</p>
-                            </div>
-                            <div>
-                              <strong className="text-slate-400 block text-[10px] uppercase">Appel à l'action (CTA) :</strong>
-                              <p className="text-indigo-300 font-semibold mt-0.5">{copy.cta}</p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Traitement des 20 Objections */}
-                <div className="bg-[#0f172a]/80 border border-slate-800 rounded-2xl p-6 shadow-xl">
-                  <h3 className="text-sm font-bold text-white mb-4">
-                    Arguments de Traitement des Objections Clients
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {analysisResult.objections_handling.map((obj, i) => (
-                      <div key={i} className="p-3.5 bg-slate-900/60 rounded-xl border border-slate-800/80">
-                        <div className="text-xs font-semibold text-rose-300 mb-1">
-                          ❓ « {obj.objection} »
-                        </div>
-                        <div className="text-xs text-slate-300 leading-relaxed">
-                          💡 <strong className="text-emerald-400">Réponse :</strong> {obj.counter_argument}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </>
-            )}
-          </div>
-        )}
-
-        {/* ONGLET 3 : CREATIVE STUDIO (VISUELS & VIDÉOS) */}
-        {activeTab === "studio" && (
-          <div className="space-y-8">
-            {!analysisResult ? (
-              <div className="text-center py-16 bg-[#0f172a]/40 border border-dashed border-slate-800 rounded-2xl">
-                <p className="text-sm text-slate-400">
-                  Générez d'abord une offre pour visualiser les prompts et formats créatifs.
-                </p>
-              </div>
-            ) : (
-              <>
-                {/* Formats Bannières & Mockups */}
-                <div>
-                  <h3 className="text-base font-bold text-white mb-4 flex items-center space-x-2">
-                    <ImageIcon className="w-5 h-5 text-indigo-400" />
-                    <span>Concepts Visuels Générés (Mockups 3D / Lifestyle Photoréaliste)</span>
-                  </h3>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Bannières / Lifestyle */}
-                    <div className="bg-[#0f172a]/80 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
-                      <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-                        <h4 className="text-sm font-semibold text-white">Bannières & Visuels d'Ambiance</h4>
-                        <span className="text-[10px] bg-indigo-500/10 text-indigo-400 px-2.5 py-0.5 rounded-full border border-indigo-500/20">
-                          Formats 1:1 & 9:16
+                    <div className="antigravity-card p-6 space-y-4">
+                      <div className="flex items-center justify-between pb-3 border-b border-white/[0.06]">
+                        <h4 className="text-sm font-semibold text-white">Prompts Lifestyle & Bannières</h4>
+                        <span className="text-[10px] bg-white/[0.05] text-cyan-400 px-2 py-0.5 rounded-full">
+                          1:1 & 9:16
                         </span>
                       </div>
-
                       <div className="space-y-3">
                         {analysisResult.visual_prompts.banners_and_lifestyle.map((pr, i) => (
-                          <div key={i} className="p-3 bg-slate-900/80 border border-slate-800 rounded-xl">
-                            <div className="flex items-center justify-between mb-1.5">
-                              <span className="text-[11px] font-semibold text-indigo-300">Prompt Emu / Midjourney #{i + 1}</span>
+                          <div key={i} className="p-3 bg-[#0a0c12] border border-white/[0.06] rounded-xl">
+                            <div className="flex items-center justify-between mb-1 text-[11px] text-slate-400">
+                              <span>Prompt #{i + 1}</span>
                               <button
-                                onClick={() => copyToClipboard(pr, `prompt_ban_${i}`)}
-                                className="text-[10px] text-slate-400 hover:text-slate-200 flex items-center space-x-1"
+                                onClick={() => copyToClipboard(pr, `prompt_b_${i}`)}
+                                className="text-cyan-400 hover:text-cyan-300"
                               >
-                                {copiedIndex === `prompt_ban_${i}` ? "Copié !" : "Copier le prompt"}
+                                {copiedIndex === `prompt_b_${i}` ? "Copié !" : "Copier"}
                               </button>
                             </div>
-                            <p className="text-xs text-slate-300 font-mono bg-slate-950 p-2 rounded-lg leading-relaxed">
-                              {pr}
-                            </p>
+                            <p className="text-xs text-slate-300 font-mono leading-relaxed">{pr}</p>
                           </div>
                         ))}
                       </div>
                     </div>
 
-                    {/* Packshots & Bundles */}
-                    <div className="bg-[#0f172a]/80 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
-                      <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-                        <h4 className="text-sm font-semibold text-white">Mockups 3D & Packshots E-commerce</h4>
-                        <span className="text-[10px] bg-purple-500/10 text-purple-400 px-2.5 py-0.5 rounded-full border border-purple-500/20">
-                          Formats 1:1 & 16:9
+                    <div className="antigravity-card p-6 space-y-4">
+                      <div className="flex items-center justify-between pb-3 border-b border-white/[0.06]">
+                        <h4 className="text-sm font-semibold text-white">Prompts Mockups 3D & Packshots</h4>
+                        <span className="text-[10px] bg-white/[0.05] text-purple-400 px-2 py-0.5 rounded-full">
+                          1:1 & 16:9
                         </span>
                       </div>
-
                       <div className="space-y-3">
                         {analysisResult.visual_prompts.mockups_or_packshots.map((pr, i) => (
-                          <div key={i} className="p-3 bg-slate-900/80 border border-slate-800 rounded-xl">
-                            <div className="flex items-center justify-between mb-1.5">
-                              <span className="text-[11px] font-semibold text-purple-300">Prompt Packshot #{i + 1}</span>
+                          <div key={i} className="p-3 bg-[#0a0c12] border border-white/[0.06] rounded-xl">
+                            <div className="flex items-center justify-between mb-1 text-[11px] text-slate-400">
+                              <span>Prompt Packshot #{i + 1}</span>
                               <button
-                                onClick={() => copyToClipboard(pr, `prompt_mock_${i}`)}
-                                className="text-[10px] text-slate-400 hover:text-slate-200 flex items-center space-x-1"
+                                onClick={() => copyToClipboard(pr, `prompt_m_${i}`)}
+                                className="text-purple-400 hover:text-purple-300"
                               >
-                                {copiedIndex === `prompt_mock_${i}` ? "Copié !" : "Copier le prompt"}
+                                {copiedIndex === `prompt_m_${i}` ? "Copié !" : "Copier"}
                               </button>
                             </div>
-                            <p className="text-xs text-slate-300 font-mono bg-slate-950 p-2 rounded-lg leading-relaxed">
-                              {pr}
-                            </p>
+                            <p className="text-xs text-slate-300 font-mono leading-relaxed">{pr}</p>
                           </div>
                         ))}
                       </div>
                     </div>
                   </div>
-                </div>
 
-                {/* Scripts Vidéo (Reels / TikTok / Shorts) */}
-                <div>
-                  <h3 className="text-base font-bold text-white mb-4 flex items-center space-x-2">
-                    <Video className="w-5 h-5 text-pink-400" />
-                    <span>Scripts Vidéo Reels & TikTok (Style Hormozi / Direct Response)</span>
-                  </h3>
+                  {/* Scripts Vidéo */}
+                  <div>
+                    <h3 className="text-sm font-semibold text-white mb-4 flex items-center space-x-2">
+                      <Video className="w-4 h-4 text-pink-400" />
+                      <span>Scripts Vidéo Reels & TikTok (Direct Response)</span>
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {analysisResult.video_scripts.map((sc, i) => (
+                        <div key={i} className="antigravity-card p-6 space-y-3 text-xs">
+                          <div className="flex items-center justify-between pb-2 border-b border-white/[0.06]">
+                            <span className="font-semibold text-white">Script Vertical 9:16</span>
+                            <span className="text-[10px] px-2 py-0.5 bg-pink-500/10 text-pink-400 rounded-full">
+                              Durée : {sc.duration}
+                            </span>
+                          </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {analysisResult.video_scripts.map((sc, i) => (
-                      <div
-                        key={i}
-                        className="bg-[#0f172a]/80 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4"
-                      >
-                        <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-                          <span className="font-bold text-sm text-white">Format Vidéo Vertical (9:16)</span>
-                          <span className="text-xs font-semibold px-2 py-0.5 bg-pink-500/10 text-pink-400 rounded-full border border-pink-500/20">
-                            Durée : {sc.duration}
-                          </span>
-                        </div>
-
-                        <div className="space-y-3 text-xs">
                           <div className="p-2.5 bg-rose-500/10 border border-rose-500/20 rounded-xl">
-                            <strong className="text-rose-300 block text-[10px] uppercase font-bold">
-                              Hook Visuel & Sonore (0 - 3 secondes) :
-                            </strong>
-                            <p className="text-slate-200 mt-1 font-medium">{sc.hook_0_3s}</p>
+                            <span className="text-rose-400 font-bold block text-[10px] uppercase">
+                              Hook Visuel (0 - 3s) :
+                            </span>
+                            <p className="text-white mt-0.5 font-medium">{sc.hook_0_3s}</p>
                           </div>
 
                           <div>
-                            <strong className="text-slate-400 block text-[10px] uppercase">Message Principal :</strong>
-                            <p className="text-slate-300 mt-0.5 leading-relaxed">{sc.core_message}</p>
-                          </div>
-
-                          <div>
-                            <strong className="text-slate-400 block text-[10px] uppercase">Texte Voix-Off (ElevenLabs) :</strong>
-                            <p className="text-slate-300 italic mt-0.5 bg-slate-900/90 p-2.5 rounded-lg border border-slate-800">
+                            <span className="text-slate-500 uppercase text-[10px] block">Voix-Off :</span>
+                            <p className="text-slate-300 italic mt-0.5 bg-[#0a0c12] p-2 rounded-lg border border-white/[0.06]">
                               « {sc.voiceover_script} »
                             </p>
                           </div>
 
                           <div>
-                            <strong className="text-slate-400 block text-[10px] uppercase">Sous-titres Incrustés :</strong>
+                            <span className="text-slate-500 uppercase text-[10px] block">Sous-titres Hormozi :</span>
                             <p className="text-yellow-300 font-semibold mt-0.5">{sc.on_screen_text}</p>
                           </div>
 
                           <div>
-                            <strong className="text-slate-400 block text-[10px] uppercase">Appel à l'action final :</strong>
-                            <p className="text-indigo-400 font-bold mt-0.5">{sc.cta}</p>
+                            <span className="text-slate-500 uppercase text-[10px] block">CTA :</span>
+                            <p className="text-cyan-400 font-bold mt-0.5">{sc.cta}</p>
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
-                </div>
-              </>
-            )}
-          </div>
-        )}
-
-        {/* ONGLET 4 : META ADS COCKPIT */}
-        {activeTab === "meta" && (
-          <div className="space-y-8">
-            {/* Tableau de bord de pilotage */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="bg-[#0f172a]/80 border border-slate-800 rounded-2xl p-5 shadow-xl">
-                <div className="text-xs text-slate-400 font-medium">Budget Dépensé (Spend)</div>
-                <div className="text-2xl font-bold text-white mt-1">0.00 €</div>
-                <div className="text-[11px] text-slate-500 mt-1">Prêt pour diffusion</div>
-              </div>
-              <div className="bg-[#0f172a]/80 border border-slate-800 rounded-2xl p-5 shadow-xl">
-                <div className="text-xs text-slate-400 font-medium">Taux de Clic Moyen (CTR)</div>
-                <div className="text-2xl font-bold text-emerald-400 mt-1">-- %</div>
-                <div className="text-[11px] text-slate-500 mt-1">Cible : &gt; 2.0%</div>
-              </div>
-              <div className="bg-[#0f172a]/80 border border-slate-800 rounded-2xl p-5 shadow-xl">
-                <div className="text-xs text-slate-400 font-medium">Coût Par Clic (CPC)</div>
-                <div className="text-2xl font-bold text-indigo-400 mt-1">-- €</div>
-                <div className="text-[11px] text-slate-500 mt-1">Optimisation automatique</div>
-              </div>
-              <div className="bg-[#0f172a]/80 border border-slate-800 rounded-2xl p-5 shadow-xl">
-                <div className="text-xs text-slate-400 font-medium">ROAS Moyen Réalisé</div>
-                <div className="text-2xl font-bold text-purple-400 mt-1">-- x</div>
-                <div className="text-[11px] text-slate-500 mt-1">Scale automatique à &gt; 2.5x</div>
-              </div>
-            </div>
-
-            {/* Déploiement et Campagnes */}
-            <div className="bg-[#0f172a]/80 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-6">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-800">
-                <div>
-                  <h3 className="text-base font-bold text-white flex items-center space-x-2">
-                    <BarChart3 className="w-5 h-5 text-indigo-400" />
-                    <span>Pilotage des Campagnes CBO Interconnectées</span>
-                  </h3>
-                  <p className="text-xs text-slate-400 mt-0.5">
-                    Gérez et déployez vos campagnes directement sur votre Business Manager Meta
-                  </p>
-                </div>
-                <button
-                  onClick={handleDeployMetaCampaign}
-                  disabled={isDeployingMeta || !title}
-                  className="px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white text-xs font-semibold rounded-xl shadow-lg transition-all flex items-center space-x-2 cursor-pointer disabled:opacity-50"
-                >
-                  <Play className="w-4 h-4" />
-                  <span>{isDeployingMeta ? "Lancement en cours..." : "Créer une Campagne CBO"}</span>
-                </button>
-              </div>
-
-              {metaDeployResult && (
-                <div className="p-4 bg-indigo-500/10 border border-indigo-500/20 rounded-xl text-xs text-indigo-300">
-                  {metaDeployResult}
-                </div>
+                </>
               )}
+            </div>
+          )}
 
-              {/* Règles d'Autopilot Intégrées */}
-              <div>
-                <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider mb-3">
-                  Règles d'Optimisation Autonome (Media Buyer IA)
-                </h4>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-                  <div className="p-3 bg-slate-900/60 rounded-xl border border-slate-800">
-                    <span className="font-semibold text-rose-400 block mb-1">Règle de Coupure (Kill) :</span>
-                    <span className="text-slate-300">Si CTR &lt; 1% après 500 impressions ➔ Coupure de l'adset et alerte.</span>
+          {/* ONGLET 4 : META ADS HUB */}
+          {activeTab === "meta" && (
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="antigravity-card p-5">
+                  <div className="text-xs text-slate-400">Spend Total</div>
+                  <div className="text-2xl font-bold text-white mt-1">0.00 €</div>
+                  <div className="text-[11px] text-slate-500 mt-1">Campagnes actives</div>
+                </div>
+                <div className="antigravity-card p-5">
+                  <div className="text-xs text-slate-400">Taux de Clic (CTR)</div>
+                  <div className="text-2xl font-bold text-emerald-400 mt-1">-- %</div>
+                  <div className="text-[11px] text-slate-500 mt-1">Seuil minimal : &gt; 2.0%</div>
+                </div>
+                <div className="antigravity-card p-5">
+                  <div className="text-xs text-slate-400">Coût par Clic (CPC)</div>
+                  <div className="text-2xl font-bold text-cyan-400 mt-1">-- €</div>
+                  <div className="text-[11px] text-slate-500 mt-1">Pilotage automatique</div>
+                </div>
+                <div className="antigravity-card p-5">
+                  <div className="text-xs text-slate-400">ROAS Réalisé</div>
+                  <div className="text-2xl font-bold text-purple-400 mt-1">-- x</div>
+                  <div className="text-[11px] text-slate-500 mt-1">Scale automatique à &gt; 2.5x</div>
+                </div>
+              </div>
+
+              <div className="antigravity-card p-6 space-y-4">
+                <div className="flex items-center justify-between pb-3 border-b border-white/[0.06]">
+                  <div>
+                    <h3 className="text-sm font-semibold text-white">Media Buyer Autopilot</h3>
+                    <p className="text-xs text-slate-400">Règles d'optimisation appliquées à vos campagnes</p>
                   </div>
-                  <div className="p-3 bg-slate-900/60 rounded-xl border border-slate-800">
-                    <span className="font-semibold text-yellow-400 block mb-1">Règle de Réduction :</span>
-                    <span className="text-slate-300">Si CPC dépasse le seuil critique ➔ Baisse du budget de 20%.</span>
+                  <button
+                    onClick={handleDeployMetaCampaign}
+                    disabled={isDeployingMeta || !title}
+                    className="pill-btn-primary px-4 py-2 text-xs flex items-center space-x-1.5 cursor-pointer disabled:opacity-50"
+                  >
+                    <Play className="w-3.5 h-3.5" />
+                    <span>Créer une Campagne CBO</span>
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+                  <div className="p-3 bg-[#0a0c12] rounded-xl border border-white/[0.06]">
+                    <span className="font-semibold text-rose-400 block mb-1">Règle Kill :</span>
+                    <span className="text-slate-300">Coupure si CTR &lt; 1% après 500 impressions.</span>
                   </div>
-                  <div className="p-3 bg-slate-900/60 rounded-xl border border-slate-800">
-                    <span className="font-semibold text-emerald-400 block mb-1">Règle de Scaling :</span>
-                    <span className="text-slate-300">Si ROAS &gt; 2.5x sur 24h ➔ Augmentation progressive du budget de 20%.</span>
+                  <div className="p-3 bg-[#0a0c12] rounded-xl border border-white/[0.06]">
+                    <span className="font-semibold text-yellow-400 block mb-1">Règle Réduction :</span>
+                    <span className="text-slate-300">Baisse du budget de 20% si CPC trop élevé.</span>
+                  </div>
+                  <div className="p-3 bg-[#0a0c12] rounded-xl border border-white/[0.06]">
+                    <span className="font-semibold text-emerald-400 block mb-1">Règle Scale :</span>
+                    <span className="text-slate-300">Augmentation progressive de 20% si ROAS &gt; 2.5x.</span>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-        )}
-      </main>
+          )}
+        </div>
+      )}
 
-      {/* Footer */}
-      <footer className="border-t border-slate-800/80 bg-[#0c1222] py-4 text-center text-xs text-slate-500">
-        SION Ads © 2026 — Votre système marketing et publicitaire autonome propulsé par IA.
+      {/* Footer minimaliste style Google */}
+      <footer className="border-t border-white/[0.06] bg-[#06070a] py-6 text-center text-xs text-slate-500 relative z-10">
+        SION Ads OS 3.2 — Conçu avec l'esthétique et la précision de Google Antigravity.
       </footer>
     </div>
   );
