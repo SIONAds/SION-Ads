@@ -1,133 +1,175 @@
 @import "tailwindcss";
 
+/* ---------------------------------------------------------------------------
+   SION Ads — design tokens
+   Encre chaude + accent "soleil". Une seule source de vérité pour les couleurs.
+--------------------------------------------------------------------------- */
 :root {
-  --background: #08090d;
-  --surface: #101218;
-  --surface-card: #151821;
-  --border-subtle: rgba(255, 255, 255, 0.08);
-  --border-highlight: rgba(255, 255, 255, 0.18);
-  --foreground: #f4f5f8;
+  --bg: #0b0c0e;
+  --surface: #121418;
+  --surface-2: #181b20;
+  --line: #262a31;
+  --line-strong: #363b44;
+  --text: #eceef1;
+  --muted: #8c93a0;
+  --faint: #5b616c;
+  --sun: #ffb547;
+  --sun-strong: #ffc66b;
+  --sun-ink: #1c1203;
+  --ok: #3ddc97;
+  --bad: #ff6b5e;
+  --info: #6aa9ff;
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-text: var(--text);
+  --color-muted: var(--muted);
+  --color-faint: var(--faint);
+  --color-sun: var(--sun);
+  --color-sun-strong: var(--sun-strong);
+  --color-sun-ink: var(--sun-ink);
+  --color-ok: var(--ok);
+  --color-bad: var(--bad);
+  --color-info: var(--info);
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-display), var(--font-geist-sans), ui-sans-serif, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+}
+
+html {
+  background: var(--bg);
+  scroll-behavior: smooth;
 }
 
 body {
-  background-color: #08090d;
-  color: #f4f5f8;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Google Sans Flex", sans-serif;
-  overflow-x: hidden;
-  letter-spacing: -0.015em;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
 }
 
-/* Animations gravitationnelles & orbes fluides style Google Antigravity */
-@keyframes float-slow {
-  0%, 100% {
-    transform: translateY(0px) scale(1);
+::selection {
+  background: color-mix(in oklab, var(--sun) 35%, transparent);
+  color: #fff;
+}
+
+:focus-visible {
+  outline: 2px solid var(--sun);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+h1, h2, h3 {
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
+}
+
+/* ---------------------------------------------------------------------------
+   Composants
+--------------------------------------------------------------------------- */
+@layer components {
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
   }
-  50% {
-    transform: translateY(-16px) scale(1.03);
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: 40px;
+    padding: 0 1.1rem;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    line-height: 1;
+    white-space: nowrap;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: background-color 0.15s, border-color 0.15s, transform 0.1s;
   }
-}
+  .btn:active { transform: translateY(1px); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-@keyframes float-reverse {
-  0%, 100% {
-    transform: translateY(0px) rotate(0deg);
+  .btn-primary { background: var(--sun); color: var(--sun-ink); }
+  .btn-primary:hover:not(:disabled) { background: var(--sun-strong); }
+
+  .btn-ghost { background: transparent; color: var(--text); border-color: var(--line-strong); }
+  .btn-ghost:hover:not(:disabled) { background: var(--surface-2); }
+
+  .btn-sm { min-height: 32px; padding: 0 0.75rem; font-size: 0.8rem; border-radius: 8px; }
+
+  .field {
+    width: 100%;
+    min-height: 42px;
+    padding: 0.6rem 0.8rem;
+    background: var(--bg);
+    border: 1px solid var(--line-strong);
+    border-radius: 10px;
+    color: var(--text);
+    font-size: 0.92rem;
+    transition: border-color 0.15s;
   }
-  50% {
-    transform: translateY(14px) rotate(4deg);
+  .field::placeholder { color: var(--faint); }
+  .field:hover { border-color: #4a505b; }
+  .field:focus { outline: none; border-color: var(--sun); box-shadow: 0 0 0 3px color-mix(in oklab, var(--sun) 18%, transparent); }
+
+  .label {
+    display: block;
+    margin-bottom: 0.4rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--muted);
   }
-}
 
-@keyframes pulse-subtle {
-  0%, 100% {
-    opacity: 0.35;
-    transform: scale(1);
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.15rem 0.55rem;
+    border-radius: 999px;
+    border: 1px solid var(--line-strong);
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--muted);
+    white-space: nowrap;
   }
-  50% {
-    opacity: 0.6;
-    transform: scale(1.08);
+  .badge-sun { color: var(--sun); border-color: color-mix(in oklab, var(--sun) 40%, transparent); background: color-mix(in oklab, var(--sun) 8%, transparent); }
+  .badge-ok { color: var(--ok); border-color: color-mix(in oklab, var(--ok) 40%, transparent); background: color-mix(in oklab, var(--ok) 8%, transparent); }
+  .badge-bad { color: var(--bad); border-color: color-mix(in oklab, var(--bad) 40%, transparent); background: color-mix(in oklab, var(--bad) 8%, transparent); }
+  .badge-info { color: var(--info); border-color: color-mix(in oklab, var(--info) 40%, transparent); background: color-mix(in oklab, var(--info) 8%, transparent); }
+
+  .eyebrow {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--sun);
   }
+
+  .num { font-variant-numeric: tabular-nums; font-family: var(--font-mono); }
 }
 
-@keyframes mesh-spin {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
+/* Grille discrète du hero : structure, pas décor */
+.hero-grid {
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 0%, #000 30%, transparent 75%);
 }
 
-.animate-float {
-  animation: float-slow 7s ease-in-out infinite;
-}
-
-.animate-float-reverse {
-  animation: float-reverse 9s ease-in-out infinite;
-}
-
-.animate-pulse-subtle {
-  animation: pulse-subtle 8s ease-in-out infinite;
-}
-
-.animate-mesh-spin {
-  animation: mesh-spin 35s linear infinite;
-}
-
-/* Grille gravitationnelle en arrière-plan */
-.bg-grid-antigravity {
-  background-size: 48px 48px;
-  background-image: 
-    linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-}
-
-/* Lueur radiale style Antigravity */
-.radial-halo {
-  background: radial-gradient(circle at 50% 30%, rgba(59, 130, 246, 0.15) 0%, rgba(139, 92, 246, 0.08) 35%, transparent 70%);
-}
-
-/* Cartes Bento style Antigravity */
-.antigravity-card {
-  background: rgba(18, 20, 28, 0.65);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  border-radius: 28px;
-  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.antigravity-card:hover {
-  border-color: rgba(255, 255, 255, 0.16);
-  transform: translateY(-2px);
-  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5), 0 0 25px -5px rgba(99, 102, 241, 0.12);
-}
-
-/* Boutons Pilule style Google */
-.pill-btn-primary {
-  border-radius: 9999px;
-  background: #ffffff;
-  color: #08090d;
-  font-weight: 550;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.pill-btn-primary:hover {
-  background: #e2e8f0;
-  transform: scale(1.02);
-  box-shadow: 0 0 25px rgba(255, 255, 255, 0.25);
-}
-
-.pill-btn-secondary {
-  border-radius: 9999px;
-  background: rgba(255, 255, 255, 0.05);
-  color: #f4f5f8;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  font-weight: 500;
-  backdrop-filter: blur(12px);
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.pill-btn-secondary:hover {
-  background: rgba(255, 255, 255, 0.09);
-  border-color: rgba(255, 255, 255, 0.2);
-  transform: scale(1.02);
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { transition: none !important; animation: none !important; }
 }

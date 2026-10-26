@@ -1,82 +1,44 @@
-import { NextRequest, NextResponse } from "next/server";
-import { generateBrainAnalysis, OfferInput } from "@/lib/brain";
-import { getServiceSupabase } from "@/lib/supabase";
+import { NextResponse, type NextRequest } from "next/server";
+import { getApiUser } from "@/lib/auth";
+import { generateBrainAnalysis } from "@/lib/brain";
+import { offerInputSchema } from "@/lib/schemas";
+import { badRequest, dbMessage, serverError, unauthorized } from "@/lib/api";
+
+export const maxDuration = 120;
 
 export async function POST(req: NextRequest) {
+  const auth = await getApiUser();
+  if (!auth) return unauthorized();
+
   try {
-    const body = await req.json();
-    const {
-      title,
-      offerType,
-      targetLocations,
-      currency,
-      strategyMode,
-      customStrategy,
-      rawInput,
-    } = body;
+    const parsed = offerInputSchema.safeParse(await req.json().catch(() => null));
+    if (!parsed.success) return badRequest(parsed.error);
+    const input = parsed.data;
 
-    if (!title || !rawInput) {
-      return NextResponse.json(
-        { error: "Le titre et la description de l'offre sont requis." },
-        { status: 400 }
-      );
-    }
+    const { analysis, source, fallbackReason } = await generateBrainAnalysis(input);
 
-    const offerPayload: OfferInput = {
-      title,
-      offerType: offerType || "digital",
-      targetLocations: Array.isArray(targetLocations) && targetLocations.length > 0 ? targetLocations : ["France"],
-      currency: currency || "EUR",
-      strategyMode: strategyMode || "ai_recommended",
-      customStrategy: customStrategy || "",
-      rawInput,
-    };
-
-    // 1. Génération de l'analyse IA Brain
-    const analysisResult = await generateBrainAnalysis(offerPayload);
-
-    // 2. Sauvegarde dans Supabase
-    const supabase = getServiceSupabase();
-    const { data: insertedOffer, error: dbError } = await supabase
+    const { data, error } = await auth.supabase
       .from("offers")
-      .insert([
-        {
-          title: offerPayload.title,
-          offer_type: offerPayload.offerType,
-          target_locations: offerPayload.targetLocations,
-          currency: offerPayload.currency,
-          strategy_mode: offerPayload.strategyMode,
-          custom_strategy: offerPayload.customStrategy,
-          raw_input: offerPayload.rawInput,
-          brain_analysis: analysisResult,
-          status: "analyzed",
-        },
-      ])
-      .select()
+      .insert({
+        owner_id: auth.user.id,
+        title: input.title,
+        offer_type: input.offerType,
+        target_locations: input.targetLocations,
+        currency: input.currency,
+        strategy_mode: input.strategyMode,
+        custom_strategy: input.customStrategy || null,
+        raw_input: input.rawInput,
+        brain_analysis: analysis,
+        analysis_source: source,
+        status: "analyzed",
+      })
+      .select("id")
       .single();
 
-    if (dbError) {
-      console.warn("Avertissement sauvegarde Supabase (vérifiez les tables) :", dbError.message);
-      // On retourne quand même l'analyse générée pour ne pas bloquer l'expérience utilisateur
-      return NextResponse.json({
-        success: true,
-        analysis: analysisResult,
-        dbSaved: false,
-        warning: dbError.message,
-      });
-    }
+    if (error) return NextResponse.json({ error: dbMessage(error) }, { status: 500 });
 
-    return NextResponse.json({
-      success: true,
-      offer: insertedOffer,
-      analysis: analysisResult,
-      dbSaved: true,
-    });
-  } catch (error: any) {
-    console.error("Erreur API Brain :", error);
-    return NextResponse.json(
-      { error: error?.message || "Erreur interne lors de l'analyse." },
-      { status: 500 }
-    );
+    return NextResponse.json({ offerId: data.id, source, fallbackReason: fallbackReason ?? null });
+  } catch (error) {
+    return serverError(error, "Erreur lors de l'analyse.");
   }
 }

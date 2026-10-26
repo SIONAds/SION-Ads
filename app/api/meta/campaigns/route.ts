@@ -1,60 +1,64 @@
-import { NextRequest, NextResponse } from "next/server";
-import { createMetaCampaign } from "@/lib/meta";
-import { getServiceSupabase } from "@/lib/supabase";
+import { NextResponse, type NextRequest } from "next/server";
+import { getApiUser } from "@/lib/auth";
+import { createCboCampaign, metaAdsConfigured } from "@/lib/meta";
+import { campaignInputSchema } from "@/lib/schemas";
+import { badRequest, dbMessage, serverError, unauthorized } from "@/lib/api";
 
 export async function POST(req: NextRequest) {
+  const auth = await getApiUser();
+  if (!auth) return unauthorized();
+
   try {
-    const body = await req.json();
-    const { offerId, campaignName, objective, dailyBudget, adAccountId, accessToken } = body;
+    const parsed = campaignInputSchema.safeParse(await req.json().catch(() => null));
+    if (!parsed.success) return badRequest(parsed.error);
+    const input = parsed.data;
 
-    const token = accessToken || process.env.META_ACCESS_TOKEN_LONG_LIVED;
-    const accountId = adAccountId || process.env.META_AD_ACCOUNT_ID;
+    // La RLS garantit que l'offre appartient bien à l'utilisateur connecté.
+    const { data: offer, error: offerError } = await auth.supabase
+      .from("offers")
+      .select("id,title,currency,target_locations")
+      .eq("id", input.offerId)
+      .single();
+    if (offerError || !offer) return NextResponse.json({ error: "Offre introuvable." }, { status: 404 });
 
-    let metaResponseId = `meta_sim_${Date.now()}`;
+    const name = input.campaignName ?? `[SION] ${offer.title} · CBO`;
+    const live = metaAdsConfigured();
 
-    // Si les clés Meta réelles sont fournies, on effectue le véritable appel API Meta
-    if (token && accountId) {
-      const result = await createMetaCampaign({
-        adAccountId: accountId,
-        name: campaignName,
-        objective: objective || "OUTCOME_SALES",
-        dailyBudget: Number(dailyBudget) || 20,
-        accessToken: token,
-      });
-      metaResponseId = result.id;
+    let metaId: string | null = null;
+    let currency = offer.currency as string;
+    if (live) {
+      const created = await createCboCampaign({ name, objective: input.objective, dailyBudget: input.dailyBudget });
+      metaId = created.id;
+      currency = created.currency;
     }
 
-    // Sauvegarde de la campagne dans Supabase
-    const supabase = getServiceSupabase();
-    const { data: dbCampaign, error: dbError } = await supabase
+    const { data, error } = await auth.supabase
       .from("meta_campaigns")
-      .insert([
-        {
-          offer_id: offerId || null,
-          campaign_name: campaignName,
-          meta_campaign_id: metaResponseId,
-          objective: objective || "OUTCOME_SALES",
-          daily_budget: Number(dailyBudget) || 20,
-          status: "PAUSED",
-        },
-      ])
-      .select()
+      .insert({
+        owner_id: auth.user.id,
+        offer_id: offer.id,
+        meta_campaign_id: metaId,
+        campaign_name: name,
+        objective: input.objective,
+        budget_type: "CBO",
+        daily_budget: input.dailyBudget,
+        currency,
+        status: live ? "PAUSED" : "DRAFT",
+        is_simulated: !live,
+      })
+      .select("id")
       .single();
+    if (error) return NextResponse.json({ error: dbMessage(error) }, { status: 500 });
 
     return NextResponse.json({
-      success: true,
-      metaCampaignId: metaResponseId,
-      campaign: dbCampaign,
-      isSimulated: !token || !accountId,
-      message: token && accountId
-        ? "Campagne Meta créée avec succès sur votre compte publicitaire !"
-        : "Campagne enregistrée en mode cockpit (ajoutez vos identifiants Meta dans .env.local pour le live).",
+      campaignId: data.id,
+      metaCampaignId: metaId,
+      simulated: !live,
+      message: live
+        ? "Campagne créée sur Meta en PAUSE. Ajoutez vos ensembles et créatifs puis activez-la dans le Gestionnaire de publicités."
+        : "Brouillon enregistré. Renseignez META_ACCESS_TOKEN_LONG_LIVED et META_AD_ACCOUNT_ID pour la créer sur Meta.",
     });
-  } catch (error: any) {
-    console.error("Erreur création campagne Meta :", error);
-    return NextResponse.json(
-      { error: error?.message || "Impossible de créer la campagne publicitaire." },
-      { status: 500 }
-    );
+  } catch (error) {
+    return serverError(error, "Impossible de créer la campagne.");
   }
 }
